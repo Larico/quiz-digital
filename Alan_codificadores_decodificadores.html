@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle de Preguntas: Codificadores y Decodificadores</title>
+    <style>
+        /* Estilos generales del cuerpo */
+        body {
+            font-family: 'Inter', sans-serif; /* Usando la fuente Inter */
+            background-color: #f0f2f5; /* Color de fondo suave */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Altura mínima para centrar verticalmente */
+            margin: 0;
+            padding: 20px; /* Espaciado general */
+            box-sizing: border-box; /* Incluir padding en el ancho/alto */
+        }
+
+        /* Contenedor principal del quiz */
+        .quiz-container {
+            background-color: #ffffff; /* Fondo blanco para el contenedor */
+            padding: 30px;
+            border-radius: 12px; /* Esquinas más redondeadas */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+            width: 100%;
+            max-width: 700px; /* Ancho máximo para el contenedor */
+            box-sizing: border-box;
+            opacity: 0; /* Inicialmente oculto para animación */
+            transform: translateY(20px); /* Ligeramente desplazado para animación */
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Transición suave */
+        }
+
+        /* Estilo para el contenedor activo */
+        .quiz-container.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Título del bloque */
+        h1 {
+            color: #2c3e50; /* Color oscuro para el título */
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em; /* Tamaño de fuente más grande */
+        }
+
+        /* Estilo para cada pregunta */
+        .question {
+            margin-bottom: 25px; /* Más espacio entre preguntas */
+            padding: 15px;
+            background-color: #f9f9f9; /* Fondo ligeramente gris para preguntas */
+            border-radius: 8px; /* Esquinas redondeadas para preguntas */
+            border: 1px solid #e0e0e0; /* Borde suave */
+        }
+
+        .question p {
+            font-weight: 600; /* Texto de pregunta más grueso */
+            margin-bottom: 15px;
+            color: #34495e; /* Color oscuro para el texto de la pregunta */
+            font-size: 1.1em; /* Tamaño de fuente ligeramente más grande */
+        }
+
+        /* Opciones de respuesta */
+        .options label {
+            display: flex; /* Usar flexbox para alinear radio y texto */
+            align-items: center; /* Alinear verticalmente */
+            margin-bottom: 10px;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 6px; /* Esquinas redondeadas */
+            transition: background-color 0.2s ease, border-color 0.2s ease; /* Transición suave */
+            border: 1px solid #e0e0e0; /* Borde para las opciones */
+        }
+
+        .options label:hover {
+            background-color: #eaf2f8; /* Color de fondo al pasar el ratón */
+            border-color: #aed6f1; /* Borde al pasar el ratón */
+        }
+
+        .options input[type="radio"] {
+            margin-right: 12px; /* Espacio entre el radio y el texto */
+            transform: scale(1.2); /* Aumentar tamaño del radio button */
+            accent-color: #007bff; /* Color del radio button */
+        }
+
+        /* Contenedor del botón */
+        .button-container {
+            text-align: center;
+            margin-top: 40px; /* Más espacio encima del botón */
+        }
+
+        /* Estilo del botón */
+        button {
+            padding: 14px 30px;
+            background-color: #007bff; /* Azul primario */
+            color: white;
+            border: none;
+            border-radius: 8px; /* Esquinas redondeadas */
+            cursor: pointer;
+            font-size: 1.1em; /* Tamaño de fuente más grande */
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; /* Transiciones suaves */
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); /* Sombra para el botón */
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Azul más oscuro al pasar el ratón */
+            transform: translateY(-2px); /* Ligeramente elevado al pasar el ratón */
+            box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4); /* Sombra más grande al pasar el ratón */
+        }
+
+        button:active {
+            transform: translateY(0); /* Vuelve a la posición normal al hacer clic */
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2); /* Sombra más pequeña al hacer clic */
+        }
+
+        /* Mensajes de retroalimentación */
+        .feedback {
+            margin-top: 25px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .correct {
+            color: #28a745; /* Verde para respuestas correctas */
+            background-color: #d4edda; /* Fondo verde claro */
+            border: 1px solid #c3e6cb;
+        }
+
+        .incorrect {
+            color: #dc3545; /* Rojo para respuestas incorrectas o incompletas */
+            background-color: #f8d7da; /* Fondo rojo claro */
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Media queries para responsividad */
+        @media (max-width: 768px) {
+            .quiz-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+            .question p {
+                font-size: 1em;
+            }
+            button {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quiz-container {
+                padding: 15px;
+                border-radius: 8px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .question {
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+            .options label {
+                padding: 8px 10px;
+                margin-bottom: 8px;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container active" id="quizBlock1">
+        <h1>Bloque 1: Codificadores</h1>
+
+        <div class="question">
+            <p>1. ¿Qué función principal cumple un codificador digital en un circuito lógico?</p>
+            <div class="options">
+                <label><input type="radio" name="q1" value="a"> a) Multiplicar señales</label>
+                <label><input type="radio" name="q1" value="b"> b) Convertir entradas binarias activas en una salida codificada</label>
+                <label><input type="radio" name="q1" value="c"> c) Almacenar datos</label>
+                <label><input type="radio" name="q1" value="d"> d) Dividir frecuencias</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>2. ¿Cuál de los siguientes es un tipo común de codificador?</p>
+            <div class="options">
+                <label><input type="radio" name="q2" value="a"> a) Codificador decimal a binario</label>
+                <label><input type="radio" name="q2" value="b"> b) Codificador binario a octal</label>
+                <label><input type="radio" name="q2" value="c"> c) Codificador inverso</label>
+                <label><input type="radio" name="q2" value="d"> d) Codificador ASCII a BCD</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>3. ¿Cuántas salidas tiene un codificador de 4 entradas?</p>
+            <div class="options">
+                <label><input type="radio" name="q3" value="a"> a) 1</label>
+                <label><input type="radio" name="q3" value="b"> b) 2</label>
+                <label><input type="radio" name="q3" value="c"> c) 3</label>
+                <label><input type="radio" name="q3" value="d"> d) 4</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>4. ¿Qué sucede si dos entradas están activas al mismo tiempo en un codificador simple?</p>
+            <div class="options">
+                <label><input type="radio" name="q4" value="a"> a) Prioriza la entrada con menor valor</label>
+                <label><input type="radio" name="q4" value="b"> b) El sistema se apaga</label>
+                <label><input type="radio" name="q4" value="c"> c) Puede generar una salida errónea</label>
+                <label><input type="radio" name="q4" value="d"> d) Se reinicia automáticamente</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>5. ¿Para qué sirve un codificador de prioridad?</p>
+            <div class="options">
+                <label><input type="radio" name="q5" value="a"> a) Para transmitir solo ceros</label>
+                <label><input type="radio" name="q5" value="b"> b) Para evitar conflictos en salidas</label>
+                <label><input type="radio" name="q5" value="c"> c) Para elegir la entrada con mayor valor activo</label>
+                <label><input type="radio" name="q5" value="d"> d) Ambas b y c son correctas</label>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button onclick="checkBlock1()">Enviar Respuestas del Bloque 1</button>
+        </div>
+        <div id="feedback1" class="feedback"></div>
+    </div>
+
+    <div class="quiz-container" id="quizBlock2" style="display: none;">
+        <h1>Bloque 2: Decodificadores</h1>
+
+        <div class="question">
+            <p>1. ¿Cuál es la función principal de un decodificador?</p>
+            <div class="options">
+                <label><input type="radio" name="q6" value="a"> a) Leer señales de audio</label>
+                <label><input type="radio" name="q6" value="b"> b) Convertir una señal codificada en una forma legible o útil</label>
+                <label><input type="radio" name="q6" value="c"> c) Codificar señales digitales</label>
+                <label><input type="radio" name="q6" value="d"> d) Eliminar errores de transmisión</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>2. ¿Cuántas salidas tiene un decodificador de 3 entradas?</p>
+            <div class="options">
+                <label><input type="radio" name="q7" value="a"> a) 4</label>
+                <label><input type="radio" name="q7" value="b"> b) 6</label>
+                <label><input type="radio" name="q7" value="c"> c) 8</label>
+                <label><input type="radio" name="q7" value="d"> d) 16</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>3. ¿Qué tipo de lógica combinacional utiliza un decodificador?</p>
+            <div class="options">
+                <label><input type="radio" name="q8" value="a"> a) Suma y resta</label>
+                <label><input type="radio" name="q8" value="b"> b) Puertas AND y NOT</label>
+                <label><input type="radio" name="q8" value="c"> c) Puertas XOR y XNOR</label>
+                <label><input type="radio" name="q8" value="d"> d) Flip-Flops</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>4. ¿Cuál es un uso común de los decodificadores en computación?</p>
+            <div class="options">
+                <label><input type="radio" name="q9" value="a"> a) Codificar señales</label>
+                <label><input type="radio" name="q9" value="b"> b) Decodificar instrucciones de máquina</label>
+                <label><input type="radio" name="q9" value="c"> c) Controlar la temperatura del CPU</label>
+                <label><input type="radio" name="q9" value="d"> d) Reducir el consumo eléctrico</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>5. ¿Qué diferencia clave existe entre un decodificador y un codificador?</p>
+            <div class="options">
+                <label><input type="radio" name="q10" value="a"> a) El codificador convierte salidas en entradas</label>
+                <label><input type="radio" name="q10" value="b"> b) El decodificador genera menos salidas</label>
+                <label><input type="radio" name="q10" value="c"> c) El codificador tiene más entradas que salidas, el decodificador lo contrario</label>
+                <label><input type="radio" name="q10" value="d"> d) No existe diferencia funcional</label>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button onclick="checkBlock2()">Enviar Respuestas del Bloque 2</button>
+        </div>
+        <div id="feedback2" class="feedback"></div>
+    </div>
+
+    <script>
+        // Respuestas correctas para el Bloque 1
+        const correctAnswersBlock1 = {
+            q1: 'b',
+            q2: 'a',
+            q3: 'b',
+            q4: 'c',
+            q5: 'd'
+        };
+
+        // Respuestas correctas para el Bloque 2
+        const correctAnswersBlock2 = {
+            q6: 'b',
+            q7: 'c',
+            q8: 'b',
+            q9: 'b',
+            q10: 'c'
+        };
+
+        /**
+         * Verifica las respuestas del Bloque 1.
+         * Calcula el puntaje y muestra retroalimentación.
+         * Si todas las preguntas están respondidas, pasa al Bloque 2.
+         */
+        function checkBlock1() {
+            let score = 0;
+            let allAnswered = true;
+            const feedbackDiv = document.getElementById('feedback1');
+            feedbackDiv.innerHTML = ''; // Limpiar retroalimentación anterior
+            feedbackDiv.className = 'feedback'; // Resetear clases de estilo
+
+            // Iterar sobre las respuestas esperadas del Bloque 1
+            for (const [qNum, correctAnswer] of Object.entries(correctAnswersBlock1)) {
+                const selectedOption = document.querySelector(`input[name="${qNum}"]:checked`);
+                if (selectedOption) {
+                    // Si la opción seleccionada es correcta, incrementar el puntaje
+                    if (selectedOption.value === correctAnswer) {
+                        score++;
+                    }
+                } else {
+                    // Si alguna pregunta no ha sido respondida
+                    allAnswered = false;
+                    feedbackDiv.innerHTML = `<p>Por favor, responde todas las preguntas del Bloque 1.</p>`;
+                    feedbackDiv.classList.add('incorrect');
+                    return; // Detener la función y pedir al usuario que responda todo
+                }
+            }
+
+            // Si todas las preguntas del Bloque 1 están respondidas
+            if (allAnswered) {
+                feedbackDiv.innerHTML = `<p>Has completado el Bloque 1. Tu puntaje: ${score} de ${Object.keys(correctAnswersBlock1).length}</p>`;
+                feedbackDiv.classList.add('correct');
+
+                // Ocultar Bloque 1 y mostrar Bloque 2 con una pequeña demora para la animación
+                const quizBlock1 = document.getElementById('quizBlock1');
+                const quizBlock2 = document.getElementById('quizBlock2');
+
+                quizBlock1.classList.remove('active');
+                quizBlock1.style.opacity = '0';
+                quizBlock1.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    quizBlock1.style.display = 'none';
+                    quizBlock2.style.display = 'block';
+                    // Activar la animación para el Bloque 2
+                    setTimeout(() => {
+                        quizBlock2.classList.add('active');
+                    }, 50); // Pequeña demora para asegurar que display:block se aplique antes de la transición
+                }, 500); // Coincide con la duración de la transición CSS
+            }
+        }
+
+        /**
+         * Verifica las respuestas del Bloque 2.
+         * Calcula el puntaje y muestra retroalimentación final.
+         */
+        function checkBlock2() {
+            let score = 0;
+            let allAnswered = true;
+            const feedbackDiv = document.getElementById('feedback2');
+            feedbackDiv.innerHTML = ''; // Limpiar retroalimentación anterior
+            feedbackDiv.className = 'feedback'; // Resetear clases de estilo
+
+            // Iterar sobre las respuestas esperadas del Bloque 2
+            for (const [qNum, correctAnswer] of Object.entries(correctAnswersBlock2)) {
+                const selectedOption = document.querySelector(`input[name="${qNum}"]:checked`);
+                if (selectedOption) {
+                    // Si la opción seleccionada es correcta, incrementar el puntaje
+                    if (selectedOption.value === correctAnswer) {
+                        score++;
+                    }
+                } else {
+                    // Si alguna pregunta no ha sido respondida
+                    allAnswered = false;
+                    feedbackDiv.innerHTML = `<p>Por favor, responde todas las preguntas del Bloque 2.</p>`;
+                    feedbackDiv.classList.add('incorrect');
+                    return; // Detener la función y pedir al usuario que responda todo
+                }
+            }
+
+            // Si todas las preguntas del Bloque 2 están respondidas
+            if (allAnswered) {
+                feedbackDiv.innerHTML = `<p>¡Felicidades! Has completado el Bloque 2. Tu puntaje: ${score} de ${Object.keys(correctAnswersBlock2).length}</p>`;
+                feedbackDiv.classList.add('correct');
+                // Aquí podrías añadir lógica para un mensaje final o un reinicio del quiz
+            }
+        }
+
+        // Asegurarse de que el Bloque 1 esté visible y animado al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('quizBlock1').classList.add('active');
+        });
+    </script>
+</body>
+</html>
